@@ -1,0 +1,341 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────
+// Usuários (apenas a equipe 3D tem login; solicitante não)
+// ─────────────────────────────────────────────────────────────
+
+enum Unit {
+  PEDERTRACTOR
+  TRACTOR
+}
+
+enum UserRole {
+  ADMIN
+  OPERATOR
+}
+
+model User {
+  id           String @id @default(uuid())
+  name         String
+  unit         Unit
+  cardNumber   String
+  passwordHash String
+
+  role   UserRole @default(OPERATOR)
+  active Boolean  @default(true)
+
+  mustChangePassword Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  statusChanges     RequestStatusHistory[]
+  failures          PrintFailure[]
+  filamentMovements FilamentMovement[]
+  machineRuns       MachineRun[]
+
+  @@unique([cardNumber, unit])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Filamentos / estoque (controlado em gramas)
+// ─────────────────────────────────────────────────────────────
+
+enum FilamentRigidity {
+  RIGIDO
+  MALEAVEL
+}
+
+enum FilamentMovementType {
+  ESTOQUE_INICIAL
+  ENTRADA
+  CONSUMO_IMPRESSAO
+  PERDA_FALHA
+  ESTORNO
+  AJUSTE
+}
+
+/// Filamento cadastrado livremente (tipo + cor + rigidez). Cada um tem seu próprio saldo.
+model Filament {
+  id            String           @id @default(uuid())
+  /// Material, ex.: PLA, PETG, TPU, ABS
+  type          String
+  /// Nome da cor, ex.: Preto, Vermelho
+  colorName     String
+  /// Cor em hexadecimal (#RRGGBB) para exibição
+  colorHex      String
+  rigidity      FilamentRigidity
+  /// Código do item no almoxarifado (usado para abrir ordem ALMX)
+  almxCode      String
+  stockGrams    Int              @default(0)
+  /// Abaixo deste valor o sistema sinaliza estoque baixo
+  minStockGrams Int              @default(0)
+  active        Boolean          @default(true)
+
+  // Foto do filamento (arquivo em UPLOADS_DIR)
+  imageStoredName String?
+  imageMimeType   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  movements FilamentMovement[]
+  items     Item[]
+  requests  PrintRequest[]
+
+  @@unique([type, colorName])
+}
+
+model FilamentMovement {
+  id           String               @id @default(uuid())
+  filamentId   String
+  type         FilamentMovementType
+  /// Positivo = entrada, negativo = saída
+  grams        Int
+  balanceAfter Int
+  note         String?
+  requestId    String?
+  userId       String?
+  createdAt    DateTime             @default(now())
+
+  filament Filament      @relation(fields: [filamentId], references: [id])
+  request  PrintRequest? @relation(fields: [requestId], references: [id])
+  user     User?         @relation(fields: [userId], references: [id])
+
+  @@index([filamentId, createdAt])
+  @@index([requestId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Máquinas
+// ─────────────────────────────────────────────────────────────
+
+enum MachineStatus {
+  DISPONIVEL
+  IMPRIMINDO
+  MANUTENCAO
+  INATIVA
+}
+
+model Machine {
+  id     String        @id @default(uuid())
+  name   String        @unique
+  model  String?
+  notes  String?
+  status MachineStatus @default(DISPONIVEL)
+
+  // Foto da máquina (arquivo em UPLOADS_DIR)
+  imageStoredName String?
+  imageMimeType   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  requests PrintRequest[]
+  failures PrintFailure[]
+  runs     MachineRun[]
+}
+
+/// Cada período em que uma solicitação ocupou a máquina (entrou em impressão até sair dela).
+/// É a base do tempo de operação e do histórico da máquina.
+model MachineRun {
+  id        String    @id @default(uuid())
+  machineId String
+  requestId String
+  /// Quem colocou em impressão
+  userId    String?
+  startedAt DateTime  @default(now())
+  /// Nulo enquanto ainda está imprimindo
+  endedAt   DateTime?
+  /// Status com que a solicitação saiu da máquina (finalizado, pausado, falha, cancelado...)
+  outcome   RequestStatus?
+
+  machine Machine      @relation(fields: [machineId], references: [id])
+  request PrintRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user    User?        @relation(fields: [userId], references: [id])
+
+  @@index([machineId, startedAt])
+  @@index([requestId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Itens impressos e vínculo com partnumbers
+// ─────────────────────────────────────────────────────────────
+
+model Item {
+  id          String  @id @default(uuid())
+  code        String  @unique
+  name        String
+  description String?
+  filamentId  String
+
+  gramsPerUnit        Int
+  printMinutesPerUnit Int
+  unitsPerPrint       Int @default(1)
+
+  active Boolean @default(true)
+
+  /// Solicitação de prototipagem que originou o item (se houver)
+  originRequestId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  filament      Filament         @relation(fields: [filamentId], references: [id])
+  partNumbers   ItemPartNumber[]
+  originRequest PrintRequest?    @relation("ItemOrigin", fields: [originRequestId], references: [id])
+  requests      PrintRequest[]   @relation("ItemProduction")
+}
+
+model ItemPartNumber {
+  id              String   @id @default(uuid())
+  itemId          String
+  partNumber      String
+  partDescription String?
+  /// Quantos deste item vão em uma peça (partnumber)
+  quantityPerPart Int      @default(1)
+  createdAt       DateTime @default(now())
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, partNumber])
+  @@index([partNumber])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Solicitações (prototipagem e produção) – fila única
+// ─────────────────────────────────────────────────────────────
+
+enum RequestType {
+  PROTOTIPAGEM
+  PRODUCAO
+}
+
+enum RequestStatus {
+  AGUARDANDO_IMPRESSAO
+  /// Prototipagem: equipe 3D desenvolvendo o protótipo (modelagem/ajustes), antes de ir para a máquina
+  EM_PROTOTIPAGEM
+  /// Na máquina, imprimindo (produção ou prototipagem)
+  EM_IMPRESSAO
+  FALHA_IMPRESSAO
+  PAUSADO
+  FINALIZADO
+  AGUARDANDO_FILAMENTO
+  CANCELADO
+}
+
+model PrintRequest {
+  id           String        @id @default(uuid())
+  /// Código de acompanhamento público (ex.: 3D-2026-00012)
+  trackingCode String        @unique
+  type         RequestType
+  status       RequestStatus @default(AGUARDANDO_IMPRESSAO)
+
+  requesterName       String
+  requesterEmail      String?
+  requesterSector     String?
+  /// Identificação na API corporativa (cartão + unidade) e centro de custo do setor
+  requesterCardNumber String?
+  requesterUnit       Unit?
+  requesterCostCenter String?
+
+  // Prototipagem
+  itemName    String?
+  description String?
+
+  // Produção
+  partNumber      String?
+  partDescription String?
+  itemId          String?
+
+  filamentId String
+  /// Quantidade de itens a imprimir (produção: partQuantity × itemsPerPart)
+  quantity   Int
+  /// Produção: peças (partnumber) pedidas e quantos itens vão em cada uma, no momento da solicitação
+  partQuantity Int?
+  itemsPerPart Int?
+
+  /// Estimativas calculadas na criação (produção) ou informadas pelo operador (prototipagem)
+  estimatedGrams          Int?
+  estimatedMinutes        Int?
+  /// Prototipagem: estimativa por peça informada pela equipe (os totais acima = por peça × quantidade)
+  estimatedGramsPerUnit   Int?
+  estimatedMinutesPerUnit Int?
+
+  /// Gramas efetivamente debitados ao entrar em impressão
+  consumedGrams Int @default(0)
+
+  machineId  String?
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  filament    Filament               @relation(fields: [filamentId], references: [id])
+  item        Item?                  @relation("ItemProduction", fields: [itemId], references: [id])
+  machine     Machine?               @relation(fields: [machineId], references: [id])
+  createdItem Item?                  @relation("ItemOrigin")
+  attachments RequestAttachment[]
+  failures    PrintFailure[]
+  history     RequestStatusHistory[]
+  movements   FilamentMovement[]
+  machineRuns MachineRun[]
+
+  @@index([status, createdAt])
+  @@index([filamentId, status])
+  @@index([type])
+  @@index([partNumber])
+}
+
+model RequestAttachment {
+  id           String   @id @default(uuid())
+  requestId    String
+  originalName String
+  storedName   String
+  mimeType     String
+  sizeBytes    Int
+  createdAt    DateTime @default(now())
+
+  request PrintRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+}
+
+model PrintFailure {
+  id        String   @id @default(uuid())
+  requestId String
+  machineId String?
+  userId    String?
+  lostGrams Int
+  /// Tempo de processo (min) até a falha; opcional em falhas antigas.
+  processMinutes Int?
+  reason    String
+  createdAt DateTime @default(now())
+
+  request PrintRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  machine Machine?     @relation(fields: [machineId], references: [id])
+  user    User?        @relation(fields: [userId], references: [id])
+
+  @@index([requestId])
+}
+
+model RequestStatusHistory {
+  id         String         @id @default(uuid())
+  requestId  String
+  fromStatus RequestStatus?
+  toStatus   RequestStatus
+  note       String?
+  userId     String?
+  createdAt  DateTime       @default(now())
+
+  request PrintRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user    User?        @relation(fields: [userId], references: [id])
+
+  @@index([requestId, createdAt])
+}

@@ -1,0 +1,31 @@
+# Dependências e build
+node_modules/
+dist/
+build/
+
+# Prisma client gerado
+src/generated/
+
+# Variáveis de ambiente (manter apenas o exemplo)
+.env
+.env.*
+!.env.example
+
+# Arquivos enviados pelos usuários
+uploads/*
+!uploads/.gitkeep
+
+# Testes / cobertura
+coverage/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# SO / editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

@@ -1,0 +1,139 @@
+/*
+ * Tema visual do Sistema 3D: estúdio claro, tipografia pesada, botões em pílula.
+ *
+ * index.css e components/ui/* vêm do template e ficam somente leitura; este arquivo é carregado
+ * depois deles (via routes/index.tsx) e sobrescreve tokens e formas. As regras ficam FORA de
+ * @layer de propósito: assim vencem as classes utilitárias dos componentes gerados.
+ */
+@import '@fontsource-variable/work-sans';
+
+:root {
+  /* Superfícies */
+  --canvas: 228 8% 92%; /* fundo cinza do "estúdio", fora da moldura */
+  --background: 0 0% 100%;
+  --foreground: 240 8% 5%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 8% 5%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 8% 5%;
+
+  /* Ação principal: preto, como os botões da referência */
+  --primary: 0 0% 4%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 5% 96%;
+  --secondary-foreground: 240 8% 5%;
+  --muted: 240 5% 96%;
+  --muted-foreground: 240 4% 40%;
+  --accent: 240 5% 94%;
+  --accent-foreground: 240 8% 5%;
+  --border: 240 6% 90%;
+  --input: 240 6% 88%;
+
+  /* Destaque quente (tampas laranja das impressoras): foco e detalhes */
+  --brand: 22 92% 52%;
+  --ring: 22 92% 52%;
+  --radius: 1rem;
+
+  --font-sans: 'Work Sans Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-soft: 0 1px 2px rgb(15 15 20 / 0.04), 0 12px 32px -16px rgb(15 15 20 / 0.18);
+  --shadow-frame: 0 1px 2px rgb(15 15 20 / 0.05), 0 30px 80px -40px rgb(15 15 20 / 0.35);
+}
+
+html,
+body {
+  font-family: var(--font-sans);
+  font-feature-settings: 'ss01' on;
+}
+
+body {
+  background-color: hsl(var(--canvas));
+}
+
+::selection {
+  background: hsl(var(--brand) / 0.25);
+}
+
+/* ───────── Botões: pílula; primário preto, contorno branco com sombra leve ───────── */
+[data-slot='button'] {
+  border-radius: 9999px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+[data-slot='button'][data-variant='outline'] {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+  box-shadow: 0 1px 2px rgb(15 15 20 / 0.06);
+}
+[data-slot='button'][data-variant='outline']:hover {
+  background-color: hsl(var(--accent));
+}
+
+/* ───────── Campos ───────── */
+[data-slot='input'],
+button[role='combobox'] {
+  border-radius: 0.875rem;
+}
+[data-slot='textarea'] {
+  border-radius: 1rem;
+}
+[role='listbox'],
+[data-slot='dropdown-menu-content'] {
+  border-radius: 1rem;
+}
+
+/* ───────── Superfícies ───────── */
+[data-slot='card'] {
+  border-radius: 1.5rem;
+  border-color: hsl(var(--border) / 0.8);
+  box-shadow: var(--shadow-soft);
+}
+[data-slot='dialog-content'] {
+  border-radius: 1.75rem;
+  border: 0;
+  box-shadow: var(--shadow-frame);
+}
+[data-slot='dialog-overlay'],
+[data-slot='sheet-overlay'] {
+  background-color: rgb(15 15 20 / 0.35);
+  backdrop-filter: blur(3px);
+}
+[data-slot='sheet-content'] {
+  box-shadow: var(--shadow-frame);
+}
+[data-slot='dialog-title'],
+[data-slot='sheet-title'] {
+  font-size: 1.25rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+[data-slot='card-title'] {
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+/* ───────── Badges e tabelas ───────── */
+[data-slot='badge'] {
+  border-radius: 9999px;
+  font-weight: 550;
+}
+[data-slot='table-head'] {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+}
+[data-slot='table-row']:hover {
+  background-color: hsl(var(--secondary) / 0.7);
+}
+
+/* ───────── Barras de progresso: trilho cinza, preenchimento preto ───────── */
+[data-slot='progress'] {
+  background-color: hsl(var(--secondary));
+}
+
+/* Foco visível no tom de destaque */
+:focus-visible {
+  outline-color: hsl(var(--brand));
+}

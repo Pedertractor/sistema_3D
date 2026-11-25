@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "back-end",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd back-end && npx tsx src/server.ts"],
+      "port": 3150
+    },
+    {
+      "name": "front-end",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd front-end && npx vite --config node_modules/.vite-local.config.mts"],
+      "port": 5174
+    }
+  ]
+}

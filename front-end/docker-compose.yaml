@@ -1,0 +1,20 @@
+name: sistema-3d
+# Front em produção (nginx). Em desenvolvimento use `npm run dev` (porta 5174).
+services:
+  frontend-sistema-3d:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+    container_name: sistema-3d-frontend
+    restart: always
+    ports:
+      - '5034:80'
+    networks:
+      - sistema-3d-network
+
+networks:
+  sistema-3d-network:
+    external: true
+    name: sistema-3d-network

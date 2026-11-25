@@ -1,0 +1,48 @@
+name: sistema-3d
+# Desenvolvimento: `docker compose up -d` sobe SOMENTE o Postgres.
+# A API roda local com `npm run dev`.
+# Produção: `docker compose --profile prod up -d --build` sobe Postgres + API.
+services:
+  sistema-3d-database:
+    image: postgres:16
+    container_name: sistema-3d-database
+    restart: always
+    ports:
+      - 5436:5432
+    environment:
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=sistema_3d_dev
+    volumes:
+      - sistema_3d_postgres_data:/var/lib/postgresql/data
+    networks:
+      - sistema-3d-network
+
+  api-sistema-3d:
+    profiles: ['prod']
+    build: .
+    container_name: sistema-3d-back-end
+    restart: always
+    ports:
+      - 5035:3150
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://docker:docker@sistema-3d-database:5432/sistema_3d_dev
+      - UPLOADS_DIR=/usr/src/app/uploads
+    depends_on:
+      - sistema-3d-database
+    networks:
+      - sistema-3d-network
+    volumes:
+      - sistema_3d_uploads:/usr/src/app/uploads
+
+volumes:
+  sistema_3d_postgres_data:
+    name: sistema_3d_postgres_data
+  sistema_3d_uploads:
+    name: sistema_3d_uploads
+
+networks:
+  sistema-3d-network:
+    name: sistema-3d-network
