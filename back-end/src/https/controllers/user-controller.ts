@@ -27,7 +27,7 @@ export async function me(request: FastifyRequest, reply: FastifyReply) {
 export async function changePassword(request: FastifyRequest, reply: FastifyReply) {
   const body = z
     .object({
-      currentPassword: z.string().min(1),
+      currentPassword: z.string().min(1).optional(),
       newPassword: z.string().min(6, 'A nova senha deve ter ao menos 6 caracteres'),
     })
     .parse(request.body);

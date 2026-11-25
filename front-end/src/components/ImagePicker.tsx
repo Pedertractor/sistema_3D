@@ -38,8 +38,8 @@ export function ImagePicker({
     <div className='flex flex-col gap-2'>
       <input ref={inputRef} id={id} type='file' accept={IMAGE_ACCEPT} className='sr-only' onChange={onFile} />
       {previewUrl ? (
-        <div className='relative overflow-hidden rounded-md border'>
-          <img src={previewUrl} alt='Pré-visualização da foto' className='h-40 w-full object-cover' />
+        <div className='relative overflow-hidden rounded-md border bg-muted'>
+          <img src={previewUrl} alt='Pré-visualização da foto' className='h-40 w-full object-contain' />
           <div className='absolute right-2 bottom-2 flex gap-2'>
             <Button type='button' size='sm' variant='secondary' onClick={() => inputRef.current?.click()}>
               <ImagePlus /> Trocar
@@ -53,10 +53,10 @@ export function ImagePicker({
         <button
           type='button'
           onClick={() => inputRef.current?.click()}
-          className='flex h-40 w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed text-sm text-muted-foreground transition-colors hover:bg-muted/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none'
+          className='group flex h-40 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-muted-foreground/25 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted/50 hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none'
         >
-          <ImagePlus className='size-6' aria-hidden />
-          Adicionar foto
+          <ImagePlus className='size-6 transition-colors group-hover:text-primary' aria-hidden />
+          <span className='font-medium underline underline-offset-4'>Clique para adicionar uma foto</span>
           <span className='text-xs'>JPG, PNG, WEBP ou GIF</span>
         </button>
       )}

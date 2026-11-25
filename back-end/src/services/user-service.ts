@@ -92,15 +92,17 @@ export class UserService {
 
   async changePassword(
     id: string,
-    input: { currentPassword: string; newPassword: string },
+    input: { currentPassword?: string | undefined; newPassword: string },
   ): Promise<PublicUser> {
     const user = await repo().findById(id);
     if (!user) throw new HttpError('Usuário não encontrado', 404);
-    if (!(await bcrypt.compare(input.currentPassword, user.passwordHash))) {
-      throw new HttpError('Senha atual incorreta', 400);
-    }
-    if (input.currentPassword === input.newPassword) {
-      throw new HttpError('A nova senha deve ser diferente da atual', 400);
+    if (!user.mustChangePassword) {
+      if (!input.currentPassword || !(await bcrypt.compare(input.currentPassword, user.passwordHash))) {
+        throw new HttpError('Senha atual incorreta', 400);
+      }
+      if (input.currentPassword === input.newPassword) {
+        throw new HttpError('A nova senha deve ser diferente da atual', 400);
+      }
     }
     const passwordHash = await bcrypt.hash(input.newPassword, 10);
     return repo().update(id, { passwordHash, mustChangePassword: false });

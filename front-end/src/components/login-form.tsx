@@ -16,7 +16,6 @@ import type { Unit } from '@/types/auth';
 function ChangePasswordStep() {
   const { user, updateUser, logout } = useAuth();
   const navigate = useNavigate();
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [saving, setSaving] = useState(false);
@@ -27,10 +26,7 @@ function ChangePasswordStep() {
     if (newPassword !== confirm) return toast.error('As senhas não coincidem');
     setSaving(true);
     try {
-      const updated = await authApi.changePassword({
-        currentPassword,
-        newPassword,
-      });
+      const updated = await authApi.changePassword({ newPassword });
       updateUser(updated);
       toast.success('Senha alterada');
       navigate(ROUTES.FILA, { replace: true });
@@ -43,15 +39,11 @@ function ChangePasswordStep() {
     <Card>
       <CardHeader>
         <CardTitle>Defina sua senha</CardTitle>
-        <CardDescription>Olá, {user?.name}. No primeiro acesso a senha é o número do cartão — crie uma senha nova para continuar.</CardDescription>
+        <CardDescription>Olá, {user?.name}. Crie uma senha nova para continuar.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit}>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor='current'>Senha atual</FieldLabel>
-              <Input id='current' type='password' value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
-            </Field>
+          <FieldGroup className='gap-4'>
             <Field>
               <FieldLabel htmlFor='new'>Nova senha</FieldLabel>
               <Input id='new' type='password' value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
@@ -60,12 +52,14 @@ function ChangePasswordStep() {
               <FieldLabel htmlFor='confirm'>Confirmar nova senha</FieldLabel>
               <Input id='confirm' type='password' value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
             </Field>
-            <Button type='submit' disabled={saving}>
-              {saving ? 'Salvando…' : 'Salvar e entrar'}
-            </Button>
-            <Button type='button' variant='ghost' onClick={logout}>
-              Sair
-            </Button>
+            <Field orientation='horizontal'>
+              <Button type='submit' disabled={saving} className='flex-1'>
+                {saving ? 'Salvando…' : 'Salvar e entrar'}
+              </Button>
+              <Button type='button' variant='ghost' onClick={logout}>
+                Sair
+              </Button>
+            </Field>
           </FieldGroup>
         </form>
       </CardContent>

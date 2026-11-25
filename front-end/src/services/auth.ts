@@ -16,7 +16,7 @@ export const authApi = {
     return data;
   },
 
-  async changePassword(input: { currentPassword: string; newPassword: string }) {
+  async changePassword(input: { newPassword: string }) {
     const { data } = await api.post<{ user: AuthUser }>('/users/me/change-password', input);
     return data.user;
   },
