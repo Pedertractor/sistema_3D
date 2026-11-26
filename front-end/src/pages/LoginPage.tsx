@@ -2,8 +2,9 @@ import { Link } from 'react-router-dom';
 
 import { LoginForm } from '@/components/login-form';
 import { BrandMark, SiteFrame } from '@/components/SiteFrame';
-import { StudioScene } from '@/components/StudioScene';
 import { ROUTES } from '@/routes/constants';
+
+const PRINTER_GIF_URL = '/impressora_3d_braco_unico%20%281%29.gif';
 
 /**
  * Login em altura fixa da janela (sem rolagem da página): formulário à esquerda e,
@@ -39,9 +40,13 @@ export function LoginPage() {
           </p>
           <p className='mt-3 max-w-sm text-sm text-muted-foreground'>Pedertractor &amp; Tractorcomponents</p>
         </div>
-        {/* A cena ocupa todo o espaço restante e se encaixa nele (largura ou altura, o que limitar primeiro). */}
-        <div className='relative mt-4 min-h-0 flex-1'>
-          <StudioScene fit='contain' className='absolute inset-0' />
+        {/* O gif ocupa todo o espaço restante e se encaixa nele (largura ou altura, o que limitar primeiro). */}
+        <div className='relative mt-4 min-h-0 flex-1 '>
+          <img
+            src={PRINTER_GIF_URL}
+            alt='Impressora 3D de braço único em funcionamento'
+            className='absolute inset-0 size-full object-contain object-bottom rounded-xl bg-white'
+          />
         </div>
       </div>
     </SiteFrame>

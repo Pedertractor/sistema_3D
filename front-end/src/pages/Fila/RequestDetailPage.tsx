@@ -24,6 +24,7 @@ import {
 import { ItemFormDialog } from '../Itens/ItemFormDialog';
 import { FailureDialog } from './FailureDialog';
 import { HistoryTimeline } from './HistoryTimeline';
+import { RequestElapsedBadge } from './RequestElapsedBadge';
 import { StatusChangeDialog } from './StatusChangeDialog';
 
 function actionLabel(status: RequestStatus, request: RequestDetail): string {
@@ -103,11 +104,11 @@ function EstimateEditor({ request }: { request: RequestDetail }) {
         </div>
         <div className='grid grid-cols-2 gap-3'>
           <Field>
-            <FieldLabel htmlFor='eg'>Gramas por peça</FieldLabel>
+            <FieldLabel htmlFor='eg'>Gramas por peça / kit</FieldLabel>
             <Input id='eg' type='number' min={1} value={grams} onChange={(e) => setGrams(e.target.value)} />
           </Field>
           <Field>
-            <FieldLabel htmlFor='em'>Minutos por peça</FieldLabel>
+            <FieldLabel htmlFor='em'>Minutos por peça / kit</FieldLabel>
             <Input id='em' type='number' min={1} value={minutes} onChange={(e) => setMinutes(e.target.value)} />
           </Field>
         </div>
@@ -176,9 +177,10 @@ export function RequestDetailPage() {
           </Button>
           <div>
             <p className='text-xs text-muted-foreground'>{REQUEST_TYPE_LABELS[request.type]}</p>
-            <h1 className='flex items-center gap-2 text-3xl font-extrabold tracking-[-0.035em]'>
+            <h1 className='flex flex-wrap items-center gap-2 text-3xl font-extrabold tracking-[-0.035em]'>
               <span className='font-mono'>{request.trackingCode}</span>
               <RequestStatusBadge status={request.status} type={request.type} />
+              <RequestElapsedBadge request={request} />
             </h1>
           </div>
         </div>
