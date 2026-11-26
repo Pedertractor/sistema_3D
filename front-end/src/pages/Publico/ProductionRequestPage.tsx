@@ -164,7 +164,16 @@ export function ProductionRequestPage() {
                     A peça existe, mas ainda não há item cadastrado para ela aqui. Peça uma prototipagem para criar o item.
                   </div>
                   <Button asChild variant='outline' size='sm'>
-                    <Link to={ROUTES.SOLICITACAO_PROTOTIPAGEM} state={{ partNumber: lookup.part.partNumber }}>
+                    <Link
+                      to={ROUTES.SOLICITACAO_PROTOTIPAGEM}
+                      state={{
+                        partNumber: lookup.part.partNumber,
+                        // Leva a identificação já digitada para não pedir de novo na prototipagem.
+                        cardNumber: requester.cardNumber,
+                        unit: requester.unit,
+                        email: requester.email,
+                      }}
+                    >
                       Solicitar via prototipagem
                     </Link>
                   </Button>

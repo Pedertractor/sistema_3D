@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ROUTES, trackPath } from '@/routes/constants';
 import { publicApi } from '@/services/public';
+import type { Unit } from '@/types/auth';
 import { PublicShell, publicCardClass } from './PublicShell';
 import { MaterialPicker } from './MaterialPicker';
 import { ProductionLinkField } from './ProductionLinkField';
@@ -24,9 +25,16 @@ const ACCEPTED_FILES = 'image/*,.stl,.step,.stp,.obj,.3mf,.iges,.igs,.pdf';
 export function PrototypeRequestPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const fromPartNumber = (location.state as { partNumber?: string } | null)?.partNumber;
+  const navState = location.state as { partNumber?: string; cardNumber?: string; unit?: Unit; email?: string } | null;
+  const fromPartNumber = navState?.partNumber;
 
-  const [requester, setRequester] = useState<RequesterState>(EMPTY_REQUESTER);
+  // Veio da produção ("sem item para esta peça"): já leva o cartão/unidade/e-mail digitados lá, sem pedir de novo.
+  const [requester, setRequester] = useState<RequesterState>(() => ({
+    ...EMPTY_REQUESTER,
+    cardNumber: navState?.cardNumber?.trim() || EMPTY_REQUESTER.cardNumber,
+    unit: navState?.unit ?? EMPTY_REQUESTER.unit,
+    email: navState?.email ?? EMPTY_REQUESTER.email,
+  }));
   const [itemName, setItemName] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [material, setMaterial] = useState<MaterialChoice>(EMPTY_MATERIAL);
