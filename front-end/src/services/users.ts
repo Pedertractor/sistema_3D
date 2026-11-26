@@ -6,7 +6,7 @@ export const usersApi = {
     const { data } = await api.get<{ users: ListUser[] }>('/users');
     return data.users;
   },
-  async create(input: { name: string; cardNumber: string; unit: Unit; role: UserRole }) {
+  async create(input: { cardNumber: string; unit: Unit; role: UserRole }) {
     const { data } = await api.post<{ user: ListUser }>('/users', input);
     return data.user;
   },

@@ -75,6 +75,8 @@ export interface Requester {
 export interface RequesterIdentity {
   cardNumber: string;
   unit: Unit;
+  /** Identificador do colaborador na API corporativa. */
+  employeeId: number;
   name: string;
   sectorName: string | null;
   costCenter: string | null;

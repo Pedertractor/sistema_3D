@@ -34,14 +34,35 @@ export function FilamentTag({
   );
 }
 
-/** Foto do filamento ou, sem foto, um bloco na cor dele. */
-export function FilamentThumb({ filament, className }: { filament: FilamentSummary; className?: string }) {
-  const url = filamentImageUrl(filament);
+const SPOOL_IMAGE_URL = '/bobina_filamento_redesenhada.png';
+/** Proporção real do PNG (1391x1131), para a prévia encaixar sem distorcer. */
+const SPOOL_ASPECT = '1391 / 1131';
+
+/**
+ * Prévia ilustrativa: carretel sempre preto, com a linha enrolada na cor escolhida.
+ * O PNG tem o carretel e o fundo opacos e só a linha vazada (transparente) — por isso
+ * basta pintar uma camada atrás dele: a cor só aparece onde a linha deixa passar.
+ */
+export function FilamentColorPreview({ colorHex, className }: { colorHex: string; className?: string }) {
   return (
-    <div className={cn('overflow-hidden bg-muted', className)} style={url ? undefined : { backgroundColor: filament.colorHex }}>
-      {url && <img src={url} alt={`Foto do filamento ${filamentLabel(filament)}`} className='size-full object-cover' />}
+    <div className={cn('relative overflow-hidden bg-white', className)} style={{ aspectRatio: SPOOL_ASPECT }}>
+      <div aria-hidden className='absolute inset-0' style={{ backgroundColor: colorHex }} />
+      <img src={SPOOL_IMAGE_URL} alt='' aria-hidden className='absolute inset-0 size-full object-contain' />
     </div>
   );
+}
+
+/** Foto do filamento ou, sem foto, a prévia do carretel na cor dele. */
+export function FilamentThumb({ filament, className }: { filament: FilamentSummary; className?: string }) {
+  const url = filamentImageUrl(filament);
+  if (url) {
+    return (
+      <div className={cn('aspect-video overflow-hidden bg-muted', className)}>
+        <img src={url} alt={`Foto do filamento ${filamentLabel(filament)}`} className='size-full object-cover' />
+      </div>
+    );
+  }
+  return <FilamentColorPreview colorHex={filament.colorHex} className={className} />;
 }
 
 /** Escolha de um filamento cadastrado (cor, foto, tipo e rigidez visíveis). */
@@ -75,7 +96,7 @@ export function FilamentPicker({
               selected ? 'border-primary ring-1 ring-primary' : 'hover:bg-accent',
             )}
           >
-            <FilamentThumb filament={filament} className='h-14 w-full' />
+            <FilamentThumb filament={filament} className='w-full' />
             <span className='flex flex-col gap-0.5 p-2'>
               <span className='font-medium leading-tight'>{filamentLabel(filament)}</span>
               <span className='text-xs text-muted-foreground'>{FILAMENT_RIGIDITY_LABELS[filament.rigidity]}</span>

@@ -28,7 +28,7 @@ export async function changePassword(request: FastifyRequest, reply: FastifyRepl
   const body = z
     .object({
       currentPassword: z.string().min(1).optional(),
-      newPassword: z.string().min(6, 'A nova senha deve ter ao menos 6 caracteres'),
+      newPassword: z.string().min(3, 'A nova senha deve ter ao menos 3 caracteres'),
     })
     .parse(request.body);
   const user = await new UserService().changePassword(request.user.sub, body);
@@ -43,7 +43,6 @@ export async function listUsers(_request: FastifyRequest, reply: FastifyReply) {
 export async function createUser(request: FastifyRequest, reply: FastifyReply) {
   const body = z
     .object({
-      name: z.string().trim().min(2, 'Informe o nome'),
       cardNumber: z.string().trim().min(1, 'Informe o cartão'),
       unit: unitSchema,
       role: roleSchema,

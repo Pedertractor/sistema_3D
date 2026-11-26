@@ -7,6 +7,7 @@ import {
   UserPrismaRepository,
   type PublicUser,
 } from '../repositories/prisma/user-repository.js';
+import { EmployeeService } from './employee-service.js';
 
 const repo = () => new UserPrismaRepository(prisma);
 
@@ -45,23 +46,24 @@ export class UserService {
     return repo().list();
   }
 
-  async create(input: {
-    name: string;
-    cardNumber: string;
-    unit: $Enums.Unit;
-    role: $Enums.UserRole;
-  }): Promise<PublicUser> {
-    const cardNumber = input.cardNumber.trim();
-    const existing = await repo().findByCard(cardNumber, input.unit);
+  async create(input: { cardNumber: string; unit: $Enums.Unit; role: $Enums.UserRole }): Promise<PublicUser> {
+    const existing = await repo().findByCard(input.cardNumber.trim(), input.unit);
     if (existing) {
       throw new HttpError('Já existe um usuário com este cartão nesta unidade', 409);
     }
+    // Nome e employeeId vêm da API corporativa, nunca do que o admin digitar.
+    const identity = await new EmployeeService().identify(input.cardNumber, input.unit);
+    const existingByEmployee = await prisma.user.findUnique({ where: { employeeId: identity.employeeId } });
+    if (existingByEmployee) {
+      throw new HttpError('Já existe um usuário para este colaborador', 409);
+    }
     // Senha inicial = número do cartão; troca obrigatória no primeiro acesso
-    const passwordHash = await bcrypt.hash(cardNumber, 10);
+    const passwordHash = await bcrypt.hash(identity.cardNumber, 10);
     return repo().create({
-      name: input.name.trim(),
-      cardNumber,
-      unit: input.unit,
+      name: identity.name,
+      cardNumber: identity.cardNumber,
+      unit: identity.unit,
+      employeeId: identity.employeeId,
       role: input.role,
       passwordHash,
       mustChangePassword: true,

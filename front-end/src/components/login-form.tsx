@@ -22,7 +22,7 @@ function ChangePasswordStep() {
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (newPassword.length < 6) return toast.error('A nova senha deve ter ao menos 6 caracteres');
+    if (newPassword.length < 3) return toast.error('A nova senha deve ter ao menos 3 caracteres');
     if (newPassword !== confirm) return toast.error('As senhas não coincidem');
     setSaving(true);
     try {

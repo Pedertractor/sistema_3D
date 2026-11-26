@@ -6,6 +6,8 @@ import type { PedertractorDesignation } from '../types/pedertractor-employee.js'
 export interface RequesterIdentity {
   cardNumber: string;
   unit: $Enums.Unit;
+  /** Identificador do colaborador na API corporativa (salvo no usuário do painel). */
+  employeeId: number;
   name: string;
   sectorName: string | null;
   costCenter: string | null;
@@ -37,6 +39,7 @@ export class EmployeeService {
     return {
       cardNumber,
       unit,
+      employeeId: employee.id,
       name: employee.name.trim(),
       sectorName: designation?.sector?.name?.trim() || null,
       costCenter: designation?.sector?.costCenter?.trim() || null,

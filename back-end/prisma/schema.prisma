@@ -26,6 +26,8 @@ model User {
   name         String
   unit         Unit
   cardNumber   String
+  /// Identificador do colaborador na API corporativa (Pedertractor). Nulo para usuários antigos sem vínculo.
+  employeeId   Int?   @unique
   passwordHash String
 
   role   UserRole @default(OPERATOR)

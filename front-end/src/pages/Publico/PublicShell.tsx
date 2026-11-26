@@ -17,7 +17,7 @@ const PUBLIC_LINKS = [
 
 function PublicHeader() {
   return (
-    <header className='grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-4 sm:grid-cols-[1fr_auto_1fr] sm:px-8'>
+    <header className='grid shrink-0 grid-cols-[1fr_auto] items-center gap-3 border-b bg-background px-4 py-2.5 sm:grid-cols-[1fr_auto_1fr] sm:px-8'>
       <BrandMark to={ROUTES.SOLICITACAO} />
       <nav aria-label='Solicitações' className='hidden items-center gap-1 sm:flex'>
         {PUBLIC_LINKS.map((link) => (
@@ -58,7 +58,7 @@ export function PublicShell({
   bare?: boolean;
 }) {
   return (
-    <SiteFrame header={<PublicHeader />}>
+    <SiteFrame header={<PublicHeader />} className='h-svh' contentClassName='min-h-0 overflow-y-auto'>
       {bare ? (
         <div className={cn('flex flex-1 flex-col', className)}>{children}</div>
       ) : (

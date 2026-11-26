@@ -4,8 +4,7 @@ import { AlertTriangle, History, PackagePlus, Pencil, Plus, Search } from 'lucid
 import { toast } from 'sonner';
 
 import { AppDialogContent } from '@/components/AppDialogContent';
-import { FilamentThumb } from '@/components/FilamentDisplay';
-import { ImagePicker, type ImageChange } from '@/components/ImagePicker';
+import { FilamentColorPreview, FilamentThumb } from '@/components/FilamentDisplay';
 import { PageHeader } from '@/components/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,7 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatDateTime, formatGrams } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { filamentImageUrl, filamentsApi, type FilamentAvailability } from '@/services/filaments';
+import { filamentsApi, type FilamentAvailability } from '@/services/filaments';
 import {
   FILAMENT_RIGIDITY_LABELS,
   FILAMENT_TYPE_SUGGESTIONS,
@@ -64,7 +63,6 @@ function FilamentDialog({ filament, onClose }: { filament: FilamentAvailability 
   const [minStock, setMinStock] = useState(filament ? String(filament.minStockGrams || '') : '');
   const [initialStock, setInitialStock] = useState('');
   const [active, setActive] = useState(filament?.active ?? true);
-  const [image, setImage] = useState<ImageChange>({ kind: 'keep' });
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -76,11 +74,8 @@ function FilamentDialog({ filament, onClose }: { filament: FilamentAvailability 
         almxCode,
         minStockGrams: minStock ? Number(minStock) : 0,
       };
-      const saved = filament
-        ? await filamentsApi.update(filament.id, { ...input, active })
-        : await filamentsApi.create({ ...input, ...(initialStock ? { initialStockGrams: Number(initialStock) } : {}) });
-      if (image.kind === 'replace') await filamentsApi.uploadImage(saved.id, image.file);
-      if (image.kind === 'remove') await filamentsApi.removeImage(saved.id);
+      if (filament) await filamentsApi.update(filament.id, { ...input, active });
+      else await filamentsApi.create({ ...input, ...(initialStock ? { initialStockGrams: Number(initialStock) } : {}) });
     },
     onSettled: () => void queryClient.invalidateQueries({ queryKey: ['filaments'] }),
     onSuccess: () => {
@@ -135,6 +130,11 @@ function FilamentDialog({ filament, onClose }: { filament: FilamentAvailability 
               </Field>
             </div>
             <Field>
+              <FieldLabel>Prévia da cor</FieldLabel>
+              <FilamentColorPreview colorHex={colorHex} className='mx-auto w-full max-w-60 rounded-md border' />
+              <FieldDescription className='text-center'>Ilustrativa, a partir de uma foto genérica — não é a foto real do filamento.</FieldDescription>
+            </Field>
+            <Field>
               <FieldLabel>Rigidez *</FieldLabel>
               <RigidityToggle value={rigidity} onChange={setRigidity} />
             </Field>
@@ -155,10 +155,6 @@ function FilamentDialog({ filament, onClose }: { filament: FilamentAvailability 
                 </Field>
               )}
             </div>
-            <Field>
-              <FieldLabel htmlFor='fimage'>Foto</FieldLabel>
-              <ImagePicker id='fimage' savedUrl={filament ? filamentImageUrl(filament) : null} value={image} onChange={setImage} />
-            </Field>
             {editing && (
               <Field orientation='horizontal'>
                 <Switch id='factive' checked={active} onCheckedChange={setActive} />
@@ -318,7 +314,7 @@ function FilamentCard({
   const committedPct = filament.stockGrams > 0 ? Math.min(100, (filament.committedGrams / filament.stockGrams) * 100) : 0;
   return (
     <Card className={cn('gap-3 overflow-hidden pt-0 pb-4', low && filament.active && 'border-amber-300', !filament.active && 'opacity-60')}>
-      <FilamentThumb filament={filament} className='h-28 w-full' />
+      <FilamentThumb filament={filament} className='w-full' />
       <CardHeader className='px-4'>
         <div className='flex items-start justify-between gap-2'>
           <div className='min-w-0'>

@@ -7,7 +7,7 @@ export class ApiPedertractorEmployee {
   async getEmployee({ cardNumber, unit }: { cardNumber: string; unit: $Enums.Unit }): Promise<PedertractorEmployee> {
     if (env.EMPLOYEE_VALIDATION_DISABLED) {
       return {
-        id: 0,
+        id: Number(cardNumber) || 0,
         name: `Colaborador ${cardNumber}`,
         cardNumber,
         unit,
